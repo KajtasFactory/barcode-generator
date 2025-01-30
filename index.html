@@ -207,11 +207,17 @@
     </style>
 </head>
 <body>
+    <div class="floating-squares">
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+    </div>
+
     <h1>Generator kodów kreskowych</h1>
     
     <div class="container">
         <div class="input-group">
-            <input type="text" id="text-input" placeholder="Wprowadź tekst" value="Przykład">
+            <input type="text" id="text-input" placeholder="Wprowadź tekst">
             
             <select id="barcode-format">
                 <option value="CODE128">CODE128 (domyślny)</option>
@@ -224,7 +230,7 @@
             <button onclick="generateBarcode()">Generuj kod kreskowy</button>
         </div>
         
-        <div id="barcode-container">
+        <div id="barcode-container" onclick="openFullscreen()">
             <svg id="barcode"></svg>
         </div>
     </div>
@@ -233,9 +239,11 @@
         Błąd generowania kodu! Sprawdź poprawność danych.
     </div>
 
-    <div class="install-prompt" id="installPrompt">
-        <span>Zainstaluj aplikację na urządzeniu</span>
-        <button id="installButton">Instaluj</button>
+    <div class="modal" id="fullscreen-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeFullscreen()">×</button>
+            <svg id="barcode-fullscreen"></svg>
+        </div>
     </div>
 
     <script>
@@ -246,26 +254,7 @@
             });
         }
 
-        // Instalacja PWA
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installPrompt').classList.add('show');
-        });
-
-        document.getElementById('installButton').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('Użytkownik zaakceptował instalację PWA');
-                }
-                deferredPrompt = null;
-                document.getElementById('installPrompt').classList.remove('show');
-            }
-        });
-
+        // Funkcja pokazująca powiadomienia
         function showNotification(message) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -275,17 +264,18 @@
             }, 3000);
         }
 
+        // Funkcja generująca kod kreskowy
         function generateBarcode() {
             const text = document.getElementById('text-input').value;
             const format = document.getElementById('barcode-format').value;
             
-            if (!window.JsBarcode) {
-                showNotification("Błąd: Biblioteka JsBarcode nie została załadowana!");
+            if (!text) {
+                showNotification("Wprowadź tekst!");
                 return;
             }
-            
+
             try {
-                // Sprawdzenie poprawności danych dla wybranego formatu
+                // Walidacja dla różnych formatów
                 if (format === 'EAN13' && (text.length !== 13 || !/^\d+$/.test(text))) {
                     showNotification("Dla formatu EAN13 wymagane jest dokładnie 13 cyfr!");
                     return;
@@ -298,7 +288,8 @@
                     showNotification("Dla formatu UPC wymagane jest dokładnie 12 cyfr!");
                     return;
                 }
-                
+
+                // Generowanie kodu kreskowego
                 JsBarcode("#barcode", text, {
                     format: format,
                     width: 2,
@@ -309,19 +300,47 @@
                     lineColor: "#000000",
                     margin: 10
                 });
+
+                // Generowanie kodu dla widoku pełnoekranowego
+                JsBarcode("#barcode-fullscreen", text, {
+                    format: format,
+                    width: 3,
+                    height: 150,
+                    displayValue: true,
+                    font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+                    background: "#FFFFFF",
+                    lineColor: "#000000",
+                    margin: 20
+                });
+
             } catch (e) {
                 console.error('Błąd generowania kodu:', e);
                 showNotification("Błąd generowania kodu! " + e.message);
             }
         }
 
-        // Generuj kod kreskowy przy załadowaniu strony
-        window.onload = generateBarcode;
+        // Funkcje obsługujące pełny ekran
+        function openFullscreen() {
+            const modal = document.getElementById('fullscreen-modal');
+            modal.classList.add('show');
+        }
 
-        // Dodaj obsługę generowania po wciśnięciu Enter
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreen-modal');
+            modal.classList.remove('show');
+        }
+
+        // Generuj kod kreskowy po wciśnięciu Enter
         document.getElementById('text-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 generateBarcode();
+            }
+        });
+
+        // Zamykanie modalu po kliknięciu poza nim
+        document.getElementById('fullscreen-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFullscreen();
             }
         });
     </script>
