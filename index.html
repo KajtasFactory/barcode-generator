@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator kodów kreskowych</title>
+    <meta name="theme-color" content="#16161A"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Generator Kodów">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkdlbmVyYXRvciBrb2TDs3cga3Jlc2tvd3ljaCIsCiAgInNob3J0X25hbWUiOiAiR2VuZXJhdG9yIGtvZMOzdyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMTYxNjFBIiwKICAidGhlbWVfY29sb3IiOiAiIzE2MTYxQSIsCiAgImljb25zIjogW3sKICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBZ01DQXpNREFnTXpBd0lqNEtJQ0E4Y21WamRDQjNhV1IwYUQwaU16QXdJaUJvWldsbmFIUTlJak13TUNJZ1ptbHNiRDBpSTJabVppSWdMejRLUEM5emRtYysiLAogICAgInNpemVzIjogIjMwMHgzMDAiLAogICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICB9XQp9">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #7F5AF0;
+            --primary-dark: #6B47D6;
+            --background: #16161A;
+            --secondary: #242629;
+            --text: #FFFFFE;
+            --paragraph: #94A1B2;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--secondary);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 2rem;
+        }
+
+        @supports not (backdrop-filter: blur(10px)) {
+            .container {
+                background: var(--secondary);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), #FF8E3C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.2);
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            padding-right: 3rem;
+        }
+
+        select option {
+            background: var(--secondary);
+            color: var(--text);
+        }
+
+        button {
+            background: var(--primary);
+            color: var(--text);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(127, 90, 240, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #barcode-container {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) + 1rem);
+            right: 1rem;
+            padding: 1rem 2rem;
+            background: #FF5470;
+            color: white;
+            border-radius: 0.5rem;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: env(safe-area-inset-bottom);
+            left: 0;
+            right: 0;
+            background: var(--primary);
+            padding: 1rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        .install-prompt button {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: white;
+            color: var(--primary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generator kodów kreskowych</h1>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="text-input" placeholder="Wprowadź tekst" value="Przykład">
+            
+            <select id="barcode-format">
+                <option value="CODE128">CODE128 (domyślny)</option>
+                <option value="EAN13">EAN13 (13 cyfr)</option>
+                <option value="EAN8">EAN8 (8 cyfr)</option>
+                <option value="UPC">UPC (12 cyfr)</option>
+                <option value="CODE39">CODE39</option>
+            </select>
+            
+            <button onclick="generateBarcode()">Generuj kod kreskowy</button>
+        </div>
+        
+        <div id="barcode-container">
+            <svg id="barcode"></svg>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        Błąd generowania kodu! Sprawdź poprawność danych.
+    </div>
+
+    <div class="install-prompt" id="installPrompt">
+        <span>Zainstaluj aplikację na urządzeniu</span>
+        <button id="installButton">Instaluj</button>
+    </div>
+
+    <script>
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZnVuY3Rpb24oZXZlbnQpIHsKICBldmVudC53YWl0VW50aWwoc2VsZi5za2lwV2FpdGluZygpKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZnVuY3Rpb24oZXZlbnQpIHsKICBldmVudC5yZXNwb25kV2l0aChmZXRjaChldmVudC5yZXF1ZXN0KSk7Cn0pOw==').then(function() {
+                console.log('Service Worker zarejestrowany');
+            });
+        }
+
+        // Instalacja PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        document.getElementById('installButton').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Użytkownik zaakceptował instalację PWA');
+                }
+                deferredPrompt = null;
+                document.getElementById('installPrompt').classList.remove('show');
+            }
+        });
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function generateBarcode() {
+            const text = document.getElementById('text-input').value;
+            const format = document.getElementById('barcode-format').value;
+            
+            try {
+                JsBarcode("#barcode", text, {
+                    format: format,
+                    width: 2,
+                    height: 100,
+                    displayValue: true,
+                    font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+                    background: "#FFFFFF",
+                    lineColor: "#000000",
+                    margin: 10
+                });
+            } catch (e) {
+                showNotification("Błąd generowania kodu! Sprawdź poprawność danych dla wybranego formatu.");
+            }
+        }
+
+        // Generuj kod kreskowy przy załadowaniu strony
+        window.onload = generateBarcode;
+
+        // Dodaj obsługę generowania po wciśnięciu Enter
+        document.getElementById('text-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateBarcode();
+            }
+        });
+    </script>
+</body>
+</html>
